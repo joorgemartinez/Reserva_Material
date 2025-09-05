@@ -57,3 +57,50 @@ SMTP_USER=tu_correo@dominio.com
 SMTP_PASS=tu_contraseña_o_app_password
 ```
 **Nota (Gmail):** usa una contraseña de aplicación y asegúrate de que `MAIL_FROM = SMTP_USER`.
+
+
+## ⚡ Uso
+Ejecutar consultas de pedidos:
+
+```bash
+# Consultar un pedido por ID
+python so_mapper.py --doc-id SO12345
+
+# Consultar pedidos de los últimos 30 minutos
+python so_mapper.py --minutes 30
+
+# Consultar pedidos de los últimos 2 días
+python so_mapper.py --days 2
+
+# Inspeccionar un pedido de forma aislada:
+python inspect_so.py --doc-id SO12345
+```
+
+## 🤖 Automatización con GitHub Actions
+
+El workflow ```.github/workflows/holded-mailer.yml``` ejecuta el script cada 5 minutos.
+Se apoya en GitHub Secrets para las variables de entorno (`HOLDED_API_KEY`, `MAIL_FROM`, etc.).
+Esto permite tener un mailer autónomo sin necesidad de servidor local.
+
+
+## 📂 Estructura del proyecto
+
+```bash
+Reserva_Material/
+├── .github/workflows/holded-mailer.yml   # Workflow CI/CD
+├── .state/processed_salesorders.json     # Estado de pedidos procesados
+├── inspect_so.py                         # Script para inspeccionar un pedido
+├── so_mapper.py                          # Script principal (mailer)
+├── requirements.txt                      # Dependencias
+├── comandos.txt                          # Ejemplos de uso rápido
+├── so_PV25L618.json                      # Ejemplo de pedido (dummy)
+└── README.md                             # Documentación
+```
+
+## 🛠️ Tecnologías usadas
+- **Python 3.11+**
+- `requests` – para interactuar con la API de Holded
+- `python-dotenv` – gestión de variables de entorno
+- `smtplib` + `email.mime` – envío de correos
+- `tzdata` – gestión de zonas horarias
+- **GitHub Actions** – automatización y ejecución programada
