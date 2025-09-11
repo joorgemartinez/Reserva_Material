@@ -164,6 +164,41 @@ def is_transport_name(name: str) -> bool:
             return True
     return False
 
+
+# --- Comercial por tags ---
+SALESPERSON_TAGS = {
+    "tomi":  "Tomás",
+    "canet": "Jorge",
+    "supa":  "Susana",
+    "juanv": "Juan",
+}
+DEFAULT_SALESPERSON = "Juan"
+
+def infer_salesperson(line_tags, doc_tags):
+    """
+    Devuelve el nombre del comercial según los tags de la línea o del documento.
+    Prioriza tags de la línea; si no hay coincidencia, mira los del doc.
+    Si no encuentra, devuelve DEFAULT_SALESPERSON.
+    """
+    def norm_tags(t):
+        if isinstance(t, list):
+            return [str(x).strip().lower() for x in t]
+        if isinstance(t, str):
+            return [t.strip().lower()]
+        return []
+
+    line_t = norm_tags(line_tags)
+    doc_t  = norm_tags(doc_tags)
+
+    for t in line_t:
+        if t in SALESPERSON_TAGS:
+            return SALESPERSON_TAGS[t]
+    for t in doc_t:
+        if t in SALESPERSON_TAGS:
+            return SALESPERSON_TAGS[t]
+    return DEFAULT_SALESPERSON
+
+
 # ----------------------------- Extractores robustos -----------------------------
 def dig(d, *keys, default=None):
     cur = d
@@ -283,6 +318,7 @@ def iter_document_lines(doc):
             "productId": it.get("productId"),
             "sku": (str(it.get("sku")) if it.get("sku") is not None else ""),
             "is_transport": is_transport,
+            "tags": it.get("tags") or [],
         }
 
 # ----------------------------- Inferencia de packs -----------------------------
@@ -324,7 +360,6 @@ def infer_units_per_pallet(product, *, name="", sku="", qty=0):
         return float(best_p), "closest", [], int(best_leftover or 0)
     return 0.0, "unknown", [], 0
 
-# ----------------------------- Render/Debug -----------------------------
 def build_row(doc, line):
     """€/W si hay potencia; si no, €/ud. Pallets solo si hay potencia."""
     cliente_name = doc.get("contactName") or "-"
@@ -374,14 +409,17 @@ def build_row(doc, line):
         "PrecioValor": precio_valor,
         "PrecioUnidad": precio_unidad,
         "PrecioDecs": decs,
-        "Transporte": "-"  # se rellena luego solo en primera fila
+        "Transporte": "-",  # se rellena luego solo en primera fila
+        "Comercial": infer_salesperson(line.get("tags"), doc.get("tags")),
     }
+
+
 
 def _display_rows_for_console(rows):
     disp = []
     for r in rows:
         precio_txt = fmt_eur(r["PrecioValor"], r["PrecioDecs"]).replace(" €", f" {r['PrecioUnidad']}")
-        transp_txt = fmt_eur(r["Transporte"], 2) if isinstance(r["Transporte"], (int,float)) else str(r["Transporte"])
+        transp_txt = fmt_eur(r["Transporte"], 2) if isinstance(r["Transporte"], (int, float)) else str(r["Transporte"])
         disp.append({
             "Fecha reserva": str(r["Fecha reserva"]),
             "Material": str(r["Material"]),
@@ -390,15 +428,21 @@ def _display_rows_for_console(rows):
             "Nº Pallets": str(r["Nº Pallets"]),
             "Cliente": str(r["Cliente"]),
             "Precio": precio_txt,
-            "Transporte": transp_txt
+            "Transporte": transp_txt,
+            "Comercial": str(r["Comercial"]),   # 👈 AHORA ES LA ÚLTIMA
         })
     return disp
+
 
 def print_table(rows):
     if not rows:
         print("No hay líneas que mostrar.")
         return
-    headers = ["Fecha reserva","Material","Potencia (W)","Cantidad uds","Nº Pallets","Cliente","Precio","Transporte"]
+    # 👇 Orden con Comercial como ÚLTIMA columna
+    headers = [
+        "Fecha reserva","Material","Potencia (W)","Cantidad uds",
+        "Nº Pallets","Cliente","Precio","Transporte","Comercial"
+    ]
     disp = _display_rows_for_console(rows)
     widths = {h: max(len(h), max(len(d[h]) for d in disp)) for h in headers}
     sep = " | "
@@ -407,6 +451,7 @@ def print_table(rows):
     print(line)
     for d in disp:
         print(sep.join(d[h].ljust(widths[h]) for h in headers))
+
 
 def dump_json(obj, path):
     path = Path(path)
@@ -453,11 +498,16 @@ def build_html_table(doc, rows):
         f" &nbsp;|&nbsp; Transporte: <b>{(fmt_eur(transporte_amount,2) if isinstance(transporte_amount,(int,float)) else transporte_amount)}</b></p>"
     )
 
-    headers = ["Fecha reserva","Material","Potencia (W)","Cantidad uds","Nº Pallets","Cliente","Precio","Transporte"]
+    # 👇 Comercial es la ÚLTIMA columna
+    headers = [
+        "Fecha reserva","Material","Potencia (W)","Cantidad uds",
+        "Nº Pallets","Cliente","Precio","Transporte","Comercial"
+    ]
+
     tr = []
     for r in rows:
         precio_html = fmt_eur(r["PrecioValor"], r["PrecioDecs"]).replace(" €", f" {r['PrecioUnidad']}")
-        transp_html = fmt_eur(r["Transporte"], 2) if isinstance(r["Transporte"], (int,float)) else r["Transporte"]
+        transp_html = fmt_eur(r["Transporte"], 2) if isinstance(r["Transporte"], (int, float)) else r["Transporte"]
         tr.append(
             "<tr>"
             f"<td>{r['Fecha reserva']}</td>"
@@ -468,18 +518,21 @@ def build_html_table(doc, rows):
             f"<td>{r['Cliente']}</td>"
             f"<td style='text-align:right'>{precio_html}</td>"
             f"<td style='text-align:right'>{transp_html}</td>"
+            f"<td>{r['Comercial']}</td>"   # 👈 ÚLTIMA CELDA
             "</tr>"
         )
+
     body = (
         "<table border='1' cellspacing='0' cellpadding='6' style='border-collapse:collapse'>"
         "<thead><tr>"
         + "".join(f"<th>{h}</th>" for h in headers) +
         "</tr></thead>"
-        f"<tbody>{''.join(tr) if tr else '<tr><td colspan=8>Sin líneas</td></tr>'}</tbody>"
+        f"<tbody>{''.join(tr) if tr else '<tr><td colspan=9>Sin líneas</td></tr>'}</tbody>"
         "</table>"
     )
 
     return "<div style='font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif'>" + head + body + "</div>"
+
 
 def send_email(subject, html):
     missing = [k for k,v in {
