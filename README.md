@@ -16,6 +16,17 @@ Funciona en local y/o de forma automática con **GitHub Actions** (cada 5 minuto
   - **Pallets** (solo si hay potencia), con reglas configurables.
 - Detecta la línea de **transporte por nombre**: `Transporte`, `Shipping cost`, `Shipping`, `Transport`, `Flete`, `Portes`, `Envío`  
   (solo muestra transporte **en la primera fila**).
+- Añade columna de Comercial en la tabla:
+  - Se obtiene de los tags del producto o del pedido
+  - Mapeo actual:
+    - `tomi` → Tomás
+    - `canet` → Jorge
+    - `supa` → Susana
+    - `juanv` → Juan
+
+  - Si no aparece ninguno de esos tags, por defecto: Juan.
+
+  
 - Envía email con **asunto dinámico**:
   - Si hay pallets: `VENDIDO {n} pallets {material} a {Cliente}`
   - Si no hay pallets: `VENDIDO {n} uds {material} a {Cliente}`
@@ -30,9 +41,6 @@ Funciona en local y/o de forma automática con **GitHub Actions** (cada 5 minuto
 - Clave de API de Holded
 
 ---
-
-## 🗂️ Estructura del proyecto (ejemplo)
-
 
 ## 🧩 Instalación (local)
 
@@ -93,7 +101,6 @@ Reserva_Material/
 ├── so_mapper.py                          # Script principal (mailer)
 ├── requirements.txt                      # Dependencias
 ├── comandos.txt                          # Ejemplos de uso rápido
-├── so_PV25L618.json                      # Ejemplo de pedido (dummy)
 └── README.md                             # Documentación
 ```
 
