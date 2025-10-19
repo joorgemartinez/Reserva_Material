@@ -7,7 +7,11 @@ Funciona en local y/o de forma automática con **GitHub Actions** (cada 5 minuto
 
 ## 🚀 Qué hace
 
-- Consulta pedidos de Holded (por `--doc-id`, por ventana de minutos o por días).
+- Consulta pedidos de Holded (por `--doc-id`, por ventana de minutos/días o todo el año con `--ytd`).
+- Detecta **pedidos nuevos** y **cambios de estado**:
+  - Pendiente/Aceptado → Cancelado → envía email **CANCELADO**.
+  - Cancelado → Pendiente/Aceptado → envía email de **VENDIDO (Reabierto)**.
+
 - Mapea líneas de producto e infiere:
   - **Potencia (W)** desde atributos o texto (p. ej., `605W`, `A605`).
   - **Precio** dinámico:
@@ -68,20 +72,19 @@ SMTP_PASS=tu_contraseña_o_app_password
 
 
 ## ⚡ Uso
-Ejecutar consultas de pedidos:
 
 ```bash
-# Consultar un pedido por ID
-python so_mapper.py --doc-id SO12345
+# Consultar todo el año en curso + hoy (recomendado para detectar cancelaciones antiguas)
+python so_mapper.py --ytd
 
-# Consultar pedidos de los últimos 30 minutos
-python so_mapper.py --minutes 30
+# Enviar correos (VENDIDO/CANCELADO) y persistir estado en .state/so_status.json
+python so_mapper.py --ytd --send-email --status-file .state/so_status.json
 
-# Consultar pedidos de los últimos 2 días
-python so_mapper.py --days 2
+# Primer arranque sin correos (sembrar estado)
+python so_mapper.py --ytd --status-file .state/so_status.json --quiet
 
-# Inspeccionar un pedido de forma aislada:
-python inspect_so.py --doc-id SO12345
+# Ventana corta (últimos 30 minutos)
+python so_mapper.py --minutes 30 --send-email --status-file .state/so_status.json
 ```
 
 ## 🤖 Automatización con GitHub Actions
@@ -96,11 +99,10 @@ Esto permite tener un mailer autónomo sin necesidad de servidor local.
 ```bash
 Reserva_Material/
 ├── .github/workflows/holded-mailer.yml   # Workflow CI/CD
-├── .state/processed_salesorders.json     # Estado de pedidos procesados
+├── .state/so_status.json     # Estado de pedidos procesados
 ├── inspect_so.py                         # Script para inspeccionar un pedido
 ├── so_mapper.py                          # Script principal (mailer)
 ├── requirements.txt                      # Dependencias
-├── comandos.txt                          # Ejemplos de uso rápido
 └── README.md                             # Documentación
 ```
 
