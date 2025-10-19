@@ -44,7 +44,7 @@ jobs:
           python so_mapper.py \
             --ytd \
             --limit 500 \
-            --status-file state/so_status.json \
+            --status-file .state/so_status.json \
             --send-email \
             --quiet
 
@@ -52,8 +52,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -n "$(git status --porcelain state/so_status.json)" ]]; then
-            git add state/so_status.json
+          if [[ -n "$(git status --porcelain .state/so_status.json)" ]]; then
+            git add .state/so_status.json
             git commit -m "chore(state): update SO status [skip ci]"
             git push
           else

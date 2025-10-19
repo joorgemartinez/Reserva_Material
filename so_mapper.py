@@ -527,7 +527,7 @@ def main():
                     help="(Opcional) Forzar VENDIDO solo si el primer estado es Pendiente/Aceptado")
     ap.add_argument("--email-new-any", dest="email_new_any", action="store_true",
                     help="(Opcional) Forzar VENDIDO si es la primera vez (cualquier estado)")
-    ap.add_argument("--status-file", default="state/so_status.json",
+    ap.add_argument("--status-file", default=".state/so_status.json",
                     help="Mapa {doc_id: status} para detectar transiciones (se actualiza al final)")
     ap.add_argument("--quiet", action="store_true", help="Logs mínimos (ideal CI)")
     ap.add_argument("--verbose", action="store_true", help="Logs de progreso de fetch/paginación")
