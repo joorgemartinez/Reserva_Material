@@ -21,6 +21,7 @@ USE_BEARER  = os.getenv("HOLDED_USE_BEARER", "false").lower() in ("1","true","ye
 
 MAIL_FROM   = os.getenv("MAIL_FROM")
 MAIL_TO     = os.getenv("MAIL_TO")      # varios separados por coma
+MAIL_CANCEL_TO = os.getenv("MAIL_CANCEL_TO")  # solo para emails de CANCELADO
 SMTP_HOST   = os.getenv("SMTP_HOST")
 SMTP_PORT   = int(os.getenv("SMTP_PORT", "587"))  # 587 STARTTLS | 465 SSL
 SMTP_USER   = os.getenv("SMTP_USER")
@@ -488,25 +489,41 @@ def build_html_table(doc, rows):
     )
     return "<div style='font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif'>" + head + body + "</div>"
 
-def send_email(subject, html):
+def send_email(subject, html, *, to_recipients=None):
     missing = [k for k,v in {
         "MAIL_FROM":MAIL_FROM, "MAIL_TO":MAIL_TO, "SMTP_HOST":SMTP_HOST,
         "SMTP_PORT":SMTP_PORT, "SMTP_USER":SMTP_USER, "SMTP_PASS":SMTP_PASS
     }.items() if not v]
     if missing:
         raise SystemExit(f"Faltan variables SMTP en entorno: {', '.join(missing)}")
-    msg = MIMEMultipart("alternative"); msg["Subject"] = subject; msg["From"] = MAIL_FROM; msg["To"] = MAIL_TO
+
+    # Permite sobrescribir destinatarios para casos especiales (p.ej., CANCELADO)
+    if to_recipients is None:
+        recipients = [e.strip() for e in (MAIL_TO or "").split(",") if e.strip()]
+        to_header = MAIL_TO
+    else:
+        recipients = [e.strip() for e in to_recipients if e.strip()]
+        to_header = ", ".join(recipients)
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = MAIL_FROM
+    msg["To"] = to_header
     msg.attach(MIMEText(html, "html"))
-    recipients = [e.strip() for e in (MAIL_TO or "").split(",") if e.strip()]
+
     try:
         if SMTP_PORT == 465:
             context = ssl.create_default_context()
             with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, context=context, timeout=60) as server:
-                server.login(SMTP_USER, SMTP_PASS); server.sendmail(MAIL_FROM, recipients, msg.as_string())
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(MAIL_FROM, recipients, msg.as_string())
         else:
             with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=60) as server:
-                server.ehlo(); server.starttls(); server.ehlo()
-                server.login(SMTP_USER, SMTP_PASS); server.sendmail(MAIL_FROM, recipients, msg.as_string())
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                server.login(SMTP_USER, SMTP_PASS)
+                server.sendmail(MAIL_FROM, recipients, msg.as_string())
     except smtplib.SMTPAuthenticationError as e:
         raise SystemExit("Autenticación SMTP fallida (535). En Gmail usa contraseña de aplicación y MAIL_FROM=SMTP_USER.") from e
 
@@ -527,7 +544,7 @@ def main():
                     help="(Opcional) Forzar VENDIDO solo si el primer estado es Pendiente/Aceptado")
     ap.add_argument("--email-new-any", dest="email_new_any", action="store_true",
                     help="(Opcional) Forzar VENDIDO si es la primera vez (cualquier estado)")
-    ap.add_argument("--status-file", default=".state/so_status.json",
+    ap.add_argument("--status-file", default="state/so_status.json",
                     help="Mapa {doc_id: status} para detectar transiciones (se actualiza al final)")
     ap.add_argument("--quiet", action="store_true", help="Logs mínimos (ideal CI)")
     ap.add_argument("--verbose", action="store_true", help="Logs de progreso de fetch/paginación")
@@ -644,7 +661,6 @@ def main():
                 if not args.quiet:
                     print(f"Email enviado (VENDIDO) — motivo: {send_reason}.")
             elif send_reason == "CANCELLED":
-                subj_cancel = f"CANCELADO pedido {number} — {cliente}"
                 mat_lines = [ln for ln in iter_document_lines(doc) if not ln.get("is_transport")]
                 html_lines = ""
                 for ln in mat_lines:
@@ -653,6 +669,7 @@ def main():
                     html_lines += f"<li>{nombre} — <b>{cantidad}</b> uds</li>"
                 if not html_lines:
                     html_lines = "<li>Sin líneas de material</li>"
+
                 html_cancel = f"""
                 <div style='font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif'>
                     <h3 style='margin:0 0 8px;color:#b30000'>❌ Pedido CANCELADO — {number}</h3>
@@ -667,7 +684,20 @@ def main():
                     </ul>
                 </div>
                 """
-                send_email(subj_cancel, html_cancel)
+
+                # Destinatarios normales + específicos de cancelación (sin duplicados)
+                base = [e.strip() for e in (MAIL_TO or "").split(",") if e.strip()]
+                extra = [e.strip() for e in (MAIL_CANCEL_TO or "").split(",") if e.strip()]
+                merged = []
+                for e in base + extra:
+                    if e and e not in merged:
+                        merged.append(e)
+
+                send_email(
+                    f"CANCELADO pedido {number} — {cliente}",
+                    html_cancel,
+                    to_recipients=merged
+                )
                 sent_cancelados += 1
                 if not args.quiet:
                     print("Email enviado (CANCELADO).")
