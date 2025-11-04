@@ -209,7 +209,7 @@ def is_transport_name(name: str) -> bool:
     return False
 
 # --- Comercial por tags ---
-SALESPERSON_TAGS = {"tomi":"Tomás","canet":"Jorge","supa":"Susana","juanv":"Juan"}
+SALESPERSON_TAGS = {"paco":"Paco","canet":"Jorge","supa":"Susana","juanv":"Juan"}
 DEFAULT_SALESPERSON = "Juan"
 def infer_salesperson(line_tags, doc_tags):
     def norm_tags(t):

@@ -23,7 +23,7 @@ Funciona en local y/o de forma automática con **GitHub Actions** (cada 5 minuto
 - Añade columna de Comercial en la tabla:
   - Se obtiene de los tags del producto o del pedido
   - Mapeo actual:
-    - `tomi` → Tomás
+    - `paco` → Paco
     - `canet` → Jorge
     - `supa` → Susana
     - `juanv` → Juan
