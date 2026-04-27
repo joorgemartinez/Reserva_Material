@@ -1,19 +1,21 @@
 name: Holded New Orders Mailer
+
 on:
   schedule:
-    - cron: "*/5 * * * *"   # cada 5 min (UTC)
+    - cron: "7,22,37,52 * * * *"   # cada ~15 min (UTC)
   workflow_dispatch:
 
 permissions:
-  contents: write           # necesario para poder hacer push del estado
+  contents: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false # NO cancelar; los runs se ejecutan en serie
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,10 +55,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [[ -n "$(git status --porcelain .state/so_status.json)" ]]; then
+
+          if [ -f ".state/so_status.json" ]; then
             git add .state/so_status.json
-            git commit -m "chore(state): update SO status [skip ci]"
-            git push
+            git diff --cached --quiet || (
+              git commit -m "chore(state): update SO status [skip ci]" &&
+              git push
+            )
           else
-            echo "No hay cambios en el estado."
+            echo "No existe el archivo de estado."
           fi
