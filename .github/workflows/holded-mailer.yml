@@ -56,12 +56,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # Timestamp para mantener el repo activo ante GitHub
+          echo "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > .state/last_run.txt
+          git add .state/last_run.txt
+
           if [ -f ".state/so_status.json" ]; then
             git add .state/so_status.json
-            git diff --cached --quiet || (
-              git commit -m "chore(state): update SO status [skip ci]" &&
-              git push
-            )
           else
             echo "No existe el archivo de estado."
           fi
+
+          git diff --cached --quiet || (
+            git commit -m "chore(state): update SO status [skip ci]" &&
+            git push
+          )

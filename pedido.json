@@ -1,0 +1,104 @@
+{
+  "id": "683ebb86e5d5b1b7710decc9",
+  "contact": "5efc4b776a97283f195143f8",
+  "contactName": "SONEPAR SPAIN SAU",
+  "desc": "",
+  "date": 1748901600,
+  "dueDate": null,
+  "multipledueDate": [],
+  "forecastDate": null,
+  "notes": "Incoterm: DAP Avilés\nForma de pago: Confirming 30 días\nPedido cliente: xxxxxxxxxxxx\nentrega Julio 2025",
+  "tags": [
+    "605",
+    "aiko",
+    "aiko450",
+    "ame",
+    "juanv",
+    "solovico",
+    "sonepar"
+  ],
+  "products": [
+    {
+      "name": "AIKO-A605-A-MAH72Mw 30mm",
+      "desc": "AIKO módulo N-Type ABC Mono glass 605W 350mm Cable Marco de 30mm\n\n",
+      "price": 63.525,
+      "units": 792,
+      "projectid": null,
+      "tax": 21,
+      "taxes": [
+        "s_iva_21"
+      ],
+      "tags": [
+        "605",
+        "aiko",
+        "ame",
+        "juanv",
+        "solovico",
+        "sonepar"
+      ],
+      "discount": 0,
+      "retention": 0,
+      "weight": 28.2,
+      "costPrice": 78.6542,
+      "sku": "AIKO-A605-A-MAH72Mw 30mm",
+      "account": "5b88760fbfcd4139e00bea57",
+      "productId": "672ce44b9dab62a1bf017782",
+      "variantId": "672ce44b9dab62a1bf017783"
+    },
+    {
+      "name": "Cable extention AIKO: 1400 mm cable, RH Connector",
+      "desc": "Extensión de cable ",
+      "price": 0,
+      "units": 792,
+      "projectid": null,
+      "tax": 21,
+      "taxes": [
+        "s_iva_21"
+      ],
+      "tags": [
+        "aiko",
+        "aiko450",
+        "ame",
+        "juanv",
+        "solovico",
+        "sonepar"
+      ],
+      "discount": 0,
+      "retention": 0,
+      "weight": 4,
+      "costPrice": 0,
+      "sku": "311000000064",
+      "account": "5b88760fbfcd4139e00bea57",
+      "productId": "65d70d2638923e12fe02024e",
+      "variantId": "65d70d2638923e12fe02024f"
+    }
+  ],
+  "tax": 10565.48,
+  "subtotal": 50311.8,
+  "discount": 0,
+  "total": 60877.28,
+  "language": "es",
+  "status": 1,
+  "customFields": [
+    {
+      "field": "Nº RII-AEE 9578– RD 110/2015   ",
+      "value": ""
+    },
+    {
+      "field": "ENV/2023/000013015",
+      "value": ""
+    }
+  ],
+  "docNumber": "PV25L415",
+  "currency": "eur",
+  "currencyChange": 1,
+  "trackingkey": null,
+  "trackingname": null,
+  "trackingnum": null,
+  "pickupdate": null,
+  "deliverydate": null,
+  "internalnotes": null,
+  "warehouse": "59d36ba31c9798554757875c",
+  "shipping": "manual",
+  "shippingData": "Sonepar Aviles\nPOL. PEPA, Av. Aluminio P2, 33490, Asturias Teléfono: 985 51 07 16"
+}
