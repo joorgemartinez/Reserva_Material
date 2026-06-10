@@ -27,6 +27,8 @@ Funciona en local y/o de forma automática con **GitHub Actions** (cada 5 minuto
     - `canet` → Jorge
     - `supa` → Susana
     - `juanv` → Juan
+    - `berzas` → Víctor
+    - `dela` → Carla
 
   - Si no aparece ninguno de esos tags, por defecto: Juan.
 
